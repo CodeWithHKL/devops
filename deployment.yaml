@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-web
+  template:
+    metadata:
+      labels:
+        app: devops-web
+    spec:
+      containers:
+      - name: devops-container
+        image: devops:latest # The image name from your Jenkins build
+        imagePullPolicy: Never # Tells Minikube to look locally, not on DockerHub
+        ports:
+        - containerPort: 3000
