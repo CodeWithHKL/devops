@@ -15,7 +15,7 @@ export default function Home() {
         />
         
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          {/* Requirement: Must show "Hello DevOps" at / endpoint */}
+          {/* Requirement: Must show "Hello DevOps" at / endpoint  */}
           <h1 className="text-5xl font-bold tracking-tighter text-black dark:text-zinc-50">
             Hello DevOps
           </h1>
@@ -27,7 +27,6 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-4 mt-10 w-full sm:flex-row">
-          {/* Link to your Hello endpoint */}
           <Link
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-zinc-50 dark:text-black transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[180px] font-medium"
             href="/hello"
@@ -35,9 +34,8 @@ export default function Home() {
             Preview Hello
           </Link>
 
-          {/* Requirement: Link to your Health Status check endpoint */}
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[180px] font-medium"
+            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black dark:border-white px-5 transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black md:w-[180px] font-medium"
             href="/health"
           >
             System Health
@@ -45,7 +43,17 @@ export default function Home() {
         </div>
 
         <footer className="mt-20 text-sm text-zinc-500 font-mono">
-          [Semester 2 2025/2026]
+          Developed by{" "}
+          <a 
+            href="https://hklxportfolio.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline decoration-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
+          >
+            HKL
+          </a>
+          <br />
+          [Semester 2 2025/2026] 
         </footer>
       </main>
     </div>
