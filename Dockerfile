@@ -1,23 +1,39 @@
-# Use the official Node.js image
-FROM node:20-alpine
-
-# Set the working directory inside the container
+# --- Stage 1: Dependencies ---
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# Copy package files first to optimize build caching
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+# --- Stage 2: Builder ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build the Next.js application
+# Disable telemetry during the build
+ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Expose the port the app runs on (Next.js default is 3000)
-EXPOSE 3000
+# --- Stage 3: Runner ---
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Start the application
-CMD ["npm", "start"]
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Create a non-root user for better security
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy only the necessary files for a standalone build
+# Note: Ensure you have "output: 'standalone'" in your next.config.js
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT 3000
+
+CMD ["node", "server.js"]
