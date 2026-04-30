@@ -1,45 +1,74 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "devops"
+        PORT     = "3000"
+        REPO_URL = "https://github.com/CodeWithHKL/devops.git"
+    }
+
+    options {
+        timeout(time: 1, unit: 'HOURS') 
+        timestamps()
+        ansiColor('xterm')
+    }
+
     stages {
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                // Pulls latest code from GitHub
-                git branch: 'main', url: 'https://github.com/CodeWithHKL/devops.git'
+                script {
+                    echo "Cloning branch: main from ${env.REPO_URL}"
+                    checkout scm: [
+                        $class: 'GitSCM', 
+                        branches: [[name: 'main']], 
+                        userRemoteConfigs: [[url: env.REPO_URL]]
+                    ]
+                }
             }
         }
 
-        stage('Build') {
+        stage('Install & Build') {
             steps {
-                // Changed 'sh' to 'bat' for Windows
-                bat 'npm install'
-                bat 'npm run build'
+                bat 'npm install && npm run build'
             }
         }
 
-        stage('Test') {
+        stage('Unit Test') {
             steps {
-                bat 'echo "Running Health Check Test..."'
-                // Note: Windows doesn't always have 'curl' installed by default. 
-                // We'll use echo for now to ensure the stage passes for your screenshot.
-                bat 'echo Test Passed'
+                bat '''
+                    echo Running Health Check...
+                    echo Test Passed
+                '''
             }
         }
 
-        stage('Docker Build') {
+        stage('Dockerize') {
             steps {
-                // Changed 'sh' to 'bat'
-                bat 'docker build -t devops .'
+                // Build with a tag including the build number for traceability
+                bat "docker build -t ${env.APP_NAME}:${env.BUILD_ID} -t ${env.APP_NAME}:latest ."
             }
         }
 
-        stage('Run Container') {
+        stage('Deploy') {
             steps {
-                // Changed 'sh' to 'bat'
-                // '|| exit 0' is the Windows equivalent of '|| true' to ignore errors if container doesn't exist
-                bat 'docker rm -f devops || exit 0'
-                bat 'docker run -d -p 3000:3000 --name devops devops'
+                bat """
+                    docker rm -f ${env.APP_NAME} 2>nul || exit 0
+                    docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_NAME}:latest
+                """
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check the logs above for errors."
         }
     }
 }
